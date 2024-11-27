@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <provider class="net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider"/>
+            <includeCallerData>true</includeCallerData>
+            <fieldNames>
+                <callerClass>class_name</callerClass>
+                <callerMethod>method_name</callerMethod>
+                <callerFile>file_name</callerFile>
+                <callerLine>line_number</callerLine>
+            </fieldNames>
+            <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                <maxLength>2048</maxLength>
+                <shortenedClassNameLength>20</shortenedClassNameLength>
+                <exclude>sun\.reflect\..*\.invoke.*</exclude>
+                <exclude>net\.sf\cglib\.proxy\.MethodProxy\.invoke</exclude>
+                <exclude>\$\$FastClassByCGLIB\$\$</exclude>
+                <exclude>\$\$EnhancerBySpringCGLIB\$\$</exclude>
+                <exclude>^sun.\.reflect\..*\.invoke</exclude>
+                <!---JDK Internals-->
+                <exclude>^com\.sun\.</exclude>
+                <exclude>^sun\.net\.</exclude>
+                <!---Dynamic Invocation-->
+                <exclude>^net\.sf\cglib\.proxy\.MethodProxy\.invoke</exclude>
+                <exclude>^org\.springframework\.cglib\.</exclude>
+                <exclude>^org\.springframework\.transaction\.</exclude>
+                <exclude>^org\.springframework\.app\.</exclude>
+                <exclude>^org\.springframework\.validation\.</exclude>
+                <exclude>^java\.lang\.reflect\.Method\.invoke</exclude>
+                <!---Spring plumbing-->
+                <exclude>^org\.springframework\.ws\..*\.invoke</exclude>
+                <exclude>^org\.springframework\.ws\.transport\.</exclude>
+                <exclude>^org\.springframework\.ws\.soap\.saaj\.SaajSoapMessage\.</exclude>
+                <exclude>^org\.springframework\.ws\.client\.core\.WebServiceTemplate\.</exclude>
+                <exclude>^org\.springframework\.web\.filter\.</exclude>
+                <!---Tomcat Internals-->
+                <exclude>^org\.apache\.tomcat\.</exclude>
+                <exclude>^org\.apache\.catalina\.</exclude>
+                <exclude>^org\.apache\.coyote\.</exclude>
+                <exclude>^java\.util\.concurrent\.ThreadPoolExecutor\.runWorker</exclude>
+                <exclude>^java\.lang\.Thread\.run$</exclude>
+                <rootCauseFirst>true</rootCauseFirst>
+                <inlineHash>true</inlineHash>
+            </throwableConverter>
+        </encoder>
+    </appender>
+
+    <appender name="RollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/observer.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily and when the file reaches 10 MegaBytes -->
+            <fileNamePattern>${LOGS}/archived/app.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <append>true</append>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <provider class="net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider"/>
+        </encoder>
+    </appender>
+
+    <!-- LOG everything at INFO level -->
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="RollingFile"/>
+    </root>
+
+    <!-- LOG "com.baeldung*" at TRACE level -->
+    <logger name="io" level="WARN"/>
+
+    <!-- Add Kafka logger -->
+    <logger name="org.apache.kafka" level="DEBUG">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="RollingFile"/>
+    </logger>
+</configuration>
+
